@@ -1,32 +1,17 @@
-use std::fs::File;
-use std::io::{self, Read};
-use std::env;
-use std::path::PathBuf;
+use std::io;
+use crate::utils;
 
-fn main() -> io::Result<()> {
+pub fn solve() -> io::Result<()> {
     let _ = do_puzzle("day2_1_0.txt",vec![12,13,14],1);
     let _ = do_puzzle("day2_1.txt",vec![12,13,14],1);
 
     Ok(())
 }
 
-fn read_file(input: &str) -> Result<String, io::Error> {
-    let path_head = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let relative_path = format!("{}{}","src/input/",input);
-    let file_path = path_head.join(relative_path);
-    
-    let mut file = File::open(file_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    Ok(contents)
-}
-
 fn do_puzzle(input: &str, valid_colors: Vec<i32>, part: i32) -> Result<i32, io::Error>{
     println!("Solving puzzle for file {} using part {}", input,part);
     
-
-    let contents = read_file(input)?;
+    let contents = utils::read_file(input)?;
     let mut game_num = 1;
     let mut result = 0;
     let mut power = 0;
@@ -67,19 +52,6 @@ fn do_puzzle(input: &str, valid_colors: Vec<i32>, part: i32) -> Result<i32, io::
     Ok(result)
 }
 
-
-fn convert_to_int(input: &str) -> i32 {
-    match input.parse::<i32>() {
-        Ok(number) => {
-            number
-        }
-        Err(_) => {
-            println!("Filaed to parse the string \"{}\" as an int", input);
-            0
-        }
-    }
-}
-
 fn parse_line(input: &str) -> Result<Vec<Vec<i32>>, &'static str> {
     let colors: [&str; 3] = ["red", "green", "blue"];
     let mut final_vec: Vec<Vec<i32>> = Vec::new(); 
@@ -102,7 +74,7 @@ fn parse_line(input: &str) -> Result<Vec<Vec<i32>>, &'static str> {
                 if let Some(_index) = value.find(string){
                     let mut new_value = value.replace(string,"");
                     new_value = new_value.replace(" ","");
-                    color_list[i] = convert_to_int(new_value.as_str());
+                    color_list[i] = utils::convert_to_int(new_value.as_str());
                 }
                 i += 1;
             }
