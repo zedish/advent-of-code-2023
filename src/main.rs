@@ -5,14 +5,14 @@ mod days;
 fn main() {
     println!("Hello, World!");
     
-    let days = 1..=3;
+    let days = 1..=4;
     for day in days{
         let func = get_day_solver(day);
         println!("========== Day:{} ==========",day);
         let time = Instant::now();
         let result = func();
         let elapsed_ms = time.elapsed().as_nanos() as f64 / 1_000_000.0;
-        println!("Part1:{}\tPart2:{}\tTime for part1:{}ms",result.0,result.1,elapsed_ms);
+        println!("Part1:{}\tPart2:{}\tTime for solve:{}ms",result.0,result.1,elapsed_ms);
 
     }
 
@@ -26,7 +26,7 @@ fn get_day_solver(day: u8) -> fn() -> (i32,i32) {
          1 => days::day01::solve,
          2 => days::day02::solve,
          3 => days::day03::solve,
-         //4 => days::day04::solve,
+         4 => days::day04::solve,
          //5 => days::day05::solve,
         //6 => days::day06::solve,
         //7 => days::day07::solve,
