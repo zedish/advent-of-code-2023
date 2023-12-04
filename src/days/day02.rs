@@ -1,16 +1,19 @@
 use std::io;
 use crate::utils;
 
-pub fn solve() -> io::Result<()> {
+pub fn solve() -> (i32,i32) {
     let _ = do_puzzle("day2_1_0.txt",vec![12,13,14],1);
     let _ = do_puzzle("day2_1.txt",vec![12,13,14],1);
-
-    Ok(())
+    
+    let result = do_puzzle("day2_1.txt",vec![12,13,14],1);
+    match result{
+        Ok(value) => {return value}
+        Err(error) =>{println!("Error occured:{}",error);}
+    }
+    (0,0)
 }
 
-fn do_puzzle(input: &str, valid_colors: Vec<i32>, part: i32) -> Result<i32, io::Error>{
-    println!("Solving puzzle for file {} using part {}", input,part);
-    
+fn do_puzzle(input: &str, valid_colors: Vec<i32>, part: i32) -> Result<(i32,i32), io::Error>{
     let contents = utils::read_file(input)?;
     let mut game_num = 1;
     let mut result = 0;
@@ -23,11 +26,8 @@ fn do_puzzle(input: &str, valid_colors: Vec<i32>, part: i32) -> Result<i32, io::
         Ok(value) => parsed_line = value,
         Err(error) => println!("Error: {}", error),
         }
-        //println!("{:?}", parsed_line);
-        //println!("{}",line);
         let mut game_bad = false;
         for game_part in parsed_line {
-            //println!("{:?}", game_part);
             let mut i = 0;
             for color in &valid_colors{
                 if *color < game_part[i]{
@@ -48,8 +48,7 @@ fn do_puzzle(input: &str, valid_colors: Vec<i32>, part: i32) -> Result<i32, io::
 
         power += min_needed[0]*min_needed[1]*min_needed[2];
     }
-    println!("Result:{}\tPower:{}",result,power);
-    Ok(result)
+    Ok((result,power))
 }
 
 fn parse_line(input: &str) -> Result<Vec<Vec<i32>>, &'static str> {

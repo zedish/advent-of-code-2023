@@ -40,22 +40,29 @@ mod tests {
     }
 }
 
-pub fn solve() -> io::Result<()> {
-    let _ = do_puzzle("day1_1.txt",1);
-    let _ = do_puzzle("day1_1.txt",2);
-    Ok(())
+pub fn solve() -> (i32,i32) {
+    let mut res1 = 0;
+    let mut res2 = 0;
+    let result1 = do_puzzle("day1_1.txt",1);
+    match result1{
+        Ok(value) => {res1=value;}
+        Err(error) =>{println!("Error occured:{}",error);}
+    }
+    let result2 = do_puzzle("day1_1.txt",2);
+    match result2{
+        Ok(value) => {res2=value;}
+        Err(error) =>{println!("Error occured:{}",error);}
+    }
+    (res1,res2)
 }
 
 fn do_puzzle(input: &str, part: i32) -> Result<i32, io::Error>{
-    println!("Solving puzzle for file {} using part {}", input,part);
-    
     let contents = utils::read_file(input)?;
 
     let mut result = 0;
     for line in contents.lines(){
         result += find_digits(line, part);
     }
-    println!("Result:{}",result);
     Ok(result)
 }
 

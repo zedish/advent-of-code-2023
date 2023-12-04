@@ -25,20 +25,18 @@ mod tests {
     }
 }
 
-pub fn solve() -> io::Result<()> {
+pub fn solve() -> (i32,i32) {
     let result = do_puzzle("day3_1.txt");
 
     match result{
-        Ok(value) => {println!("Part 1 Result:{}\tPart 2 Result:{}", value.0, value.1);}
+        Ok(value) => {return value}
         Err(error) =>{println!("Error occured:{}",error);}
     }
     
-    Ok(())
+    (0,0)
 }
 
 fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
-    println!("Solving puzzle for file {}", input);
-
     let contents = utils::read_file(input)?;
     let extra_line = '.'.to_string().repeat(10);
 
