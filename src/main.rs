@@ -5,7 +5,7 @@ mod days;
 fn main() {
     println!("Hello, Advent of Code!");
     
-    let days = 1..=5;
+    let days = 5..=5;
     for day in days{
         let func = get_day_solver(day);
         println!("========== Day:{} ==========",day);

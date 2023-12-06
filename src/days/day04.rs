@@ -64,7 +64,7 @@ fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
         if let Some(mult) = num_cards.get(i).cloned(){
             for val in 1..=result.1{
                 if let Some(value) = num_cards.get_mut((val as usize)+i) {
-                    *value += mult; // Increment the value at the specified index
+                    *value += mult; 
                 }
             }
             result2 += mult;
