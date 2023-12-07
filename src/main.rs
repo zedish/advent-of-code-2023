@@ -5,9 +5,9 @@ mod days;
 fn main() {
     println!("Hello, Advent of Code!");
     
-    let skip: Vec<i32> = vec![0];
+    let skip: Vec<i32> = vec![5];
 
-    let days = 1..=6;
+    let days = 1..=7;
     for day in days{
         if skip.contains(&day){continue;}
         let func = get_day_solver(day);
