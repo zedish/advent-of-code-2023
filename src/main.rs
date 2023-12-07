@@ -5,19 +5,22 @@ mod days;
 fn main() {
     println!("Hello, Advent of Code!");
     
-    let days = 5..=5;
+    let skip: Vec<i32> = vec![0];
+
+    let days = 1..=6;
     for day in days{
+        if skip.contains(&day){continue;}
         let func = get_day_solver(day);
-        println!("========== Day:{} ==========",day);
+        println!("============== Day:{} ==============",day);
         let time = Instant::now();
         let result = func();
         let elapsed_ms = time.elapsed().as_nanos() as f64 / 1_000_000.0;
-        println!("Part1:{}\tPart2:{}\tTime for solve:{}ms",result.0,result.1,elapsed_ms);
+        println!("Part1:{}        Part2:{}\tTime for solve:{}ms",result.0,result.1,elapsed_ms);
 
     }
 }
 
-fn get_day_solver(day: u8) -> fn() -> (i32,i32) {
+fn get_day_solver(day: i32) -> fn() -> (i32,i32) {
     match day {
          1 => days::day01::solve,
          2 => days::day02::solve,

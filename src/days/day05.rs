@@ -1,5 +1,6 @@
-use std::{io, collections::HashMap};
+use std::io;
 use crate::utils;
+use std::io::Write;
 
 #[cfg(test)]
 mod tests {
@@ -7,6 +8,19 @@ mod tests {
 
     #[test]
     fn test_part1_examples() {
+        let result = do_puzzle("day5_1_0.txt");
+        match result{
+            Ok(value) => {assert_eq!(value.0,35);}
+            Err(_error) =>{assert_eq!(1,2);}
+        }
+    }
+    #[test]
+    fn test_part2_examples() {
+        let result = do_puzzle("day5_1_0.txt");
+        match result{
+            Ok(value) => {assert_eq!(value.1,46);}
+            Err(_error) =>{assert_eq!(1,2);}
+        }
     }
 }
 
@@ -23,8 +37,7 @@ pub fn solve() -> (i32,i32) {
 
 fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
     let contents = utils::read_file(input)?;
-    
-    let mut seed_soil: HashMap<i64,i64> = HashMap::new();
+    let progress = "/-\\-"; 
 
     let seeds = contents.lines().nth(0)
                         .unwrap()
@@ -57,21 +70,22 @@ fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
     }
     let mut part2: i64 = i64::MAX;
     let max_seed = get_max_seed(seed_vec.clone());
-    println!("max seed:{}",max_seed);
     let mut thing = 0;
     for i in 0..=max_seed{
         let tmp_seed = get_seed(i, maps.clone());
         if check_valid_seed(tmp_seed, seed_vec.clone()){
-            println!("part2:{}",i);
             part2 = i;
             break;
         }
         thing += 1;
         if thing > 50000{
             thing = 0;
-            println!("Seed:{}",i);
+            print!("\r{}\tSeed:{}",progress.chars().nth((i%4)as usize).unwrap(),i);
+            std::io::stdout().flush().unwrap();
         }
     }
+    print!("\r");
+    std::io::stdout().flush().unwrap();
     Ok((lowest.try_into().unwrap(),part2.try_into().unwrap()))
 }
 fn get_max_seed(seeds: Vec<i64>) -> i64{
@@ -149,12 +163,6 @@ fn get_dist(seed: i64, maps: Vec<Vec<Vec<i64>>>) -> i64{
     tmp
 }
 
-fn remove_lines(lines: &mut Vec<&str>, num: i32){
-    for _i in 0..num{
-        lines.remove(0);
-    }
-}
-
 fn get_next_block(lines: String, skip: usize) -> Vec<Vec<i64>>{
     let result: Vec<Vec<i64>> = lines.lines()
                             .skip(skip)
@@ -162,26 +170,4 @@ fn get_next_block(lines: String, skip: usize) -> Vec<Vec<i64>>{
                             .map(|line| line.split_whitespace().filter_map(|s| s.parse::<i64>().ok()).collect())
                             .collect();
     result    
-}
-
-fn create_hash(input: Vec<Vec<i64>>) -> HashMap<i64,i64>{
-    let mut result: HashMap<i64,i64> = HashMap::new();
-    println!("in thing");
-    for seed in &input{
-        for entry in seed{
-            print!(":{entry}");
-        }
-        println!("");
-    }
-    for entry in input{
-        let start = *entry.get(0).unwrap_or(&0);
-        let diff = *entry.get(1).unwrap_or(&0) - start;
-        let iter_num = *entry.get(2).unwrap_or(&0);
-        for val in 0..iter_num{
-            println!("{}:{}",start+val,start+val+diff);
-            result.entry(*entry.get(1).unwrap()+val).or_insert(start+val);
-        }
-    }    
-
-    result
 }
