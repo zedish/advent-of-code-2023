@@ -5,9 +5,9 @@ mod days;
 fn main() {
     println!("Hello, Advent of Code!");
     
-    let skip: Vec<i32> = vec![5];
+    let skip: Vec<i32> = vec![0];
 
-    let days = 1..=7;
+    let days = 1..=8;
     for day in days{
         if skip.contains(&day){continue;}
         let func = get_day_solver(day);
@@ -20,7 +20,7 @@ fn main() {
     }
 }
 
-fn get_day_solver(day: i32) -> fn() -> (i32,i32) {
+fn get_day_solver(day: i32) -> fn() -> (i64,i64) {
     match day {
          1 => days::day01::solve,
          2 => days::day02::solve,

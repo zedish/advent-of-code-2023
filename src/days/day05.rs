@@ -25,7 +25,7 @@ mod tests {
 }
 
 
-pub fn solve() -> (i32,i32) {
+pub fn solve() -> (i64,i64) {
     let result = do_puzzle("day5_1.txt"); 
     match result{
         Ok(value) => {return value}
@@ -35,7 +35,7 @@ pub fn solve() -> (i32,i32) {
     (0,0)
 }
 
-fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
+fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     let contents = utils::read_file(input)?;
     let progress = "/-\\-"; 
 
@@ -86,7 +86,9 @@ fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
     }
     print!("\r");
     std::io::stdout().flush().unwrap();
-    Ok((lowest.try_into().unwrap(),part2.try_into().unwrap()))
+    let val1:i32 = lowest.try_into().unwrap();
+    let val2:i32 = part2.try_into().unwrap(); 
+    Ok((val1 as i64,val2 as i64))
 }
 fn get_max_seed(seeds: Vec<i64>) -> i64{
     let mut prev = -1;

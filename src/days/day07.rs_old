@@ -1,0 +1,477 @@
+use std::{io, i32};
+use crate::utils;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1_examples() {
+    }
+}
+
+
+pub fn solve() -> (i32,i32) {
+    let result = do_puzzle("day7_1.txt"); 
+    match result{
+        Ok(value) => {return value}
+        Err(error) =>{println!("Error occured:{}",error);}
+    }
+    
+    (0,0)
+}
+
+fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
+    let contents = utils::read_file(input)?;
+    // let mut hands: Vec<(&str,i32)> = Vec::new();
+    // for line in contents.lines(){
+    //     let tup = (line.split_whitespace().nth(0).unwrap(),
+    //                line.split_whitespace().nth(1).unwrap()
+    //                     .parse::<i32>().unwrap());
+    //     hands.push(tup);
+    // }
+
+    let mut hands: Vec<(&str,i32)> = contents.lines()
+                                    .map(|line|
+                                    (line.split_whitespace().nth(0).unwrap(),
+                                     line.split_whitespace().nth(1).unwrap()
+                                     .parse::<i32>().unwrap()))
+                                     .collect();
+                                
+
+    // for hand in &hands{
+    //     println!("{}:{}",hand.0,hand.1);
+    // }
+    hands.sort_by(|a, b|{
+        let (x,y) = cmp_hands(*a, *b);
+        x.cmp(&y)
+    });
+
+    // for hand in &hands{
+    //     println!("{}:{}",hand.0,hand.1);
+    // }
+    let mut result = 0;
+    let mut i = 1;
+    for hand in &hands{
+        result += i*hand.1;
+        i += 1;
+    }
+    hands.sort_by(|a, b|{
+        let (x,y) = cmp_hands2(*a, *b);
+        x.cmp(&y)
+    });
+    for hand in &hands{
+        println!("{}:{}",hand.0,hand.1);
+        // if hand.1 == 925{
+        // println!("{}:{}",hand.0,hand.1);
+        // }
+    }
+
+    let mut result2 = 0;
+    let mut i2 = 1;
+    for hand in &hands{
+        result2 += i2*hand.1;
+        i2 += 1;
+    }
+    Ok((result,result2))
+}
+
+fn cmp_hands(a: (&str,i32) ,b: (&str,i32)) -> (i32,i32){
+    let iter1 = a.0.chars();
+    let iter2 = b.0.chars();
+    let mut hand1: [i32; 15] = [0; 15];
+    let mut hand2: [i32; 15] = [0; 15];
+
+    for (char1, char2) in iter1.zip(iter2){
+        hand1[get_card_num(char1)] += 1;
+        hand2[get_card_num(char2)] += 1;
+    }
+    let mut hand1_val = get_hand_value2(hand1); 
+    let mut hand2_val = get_hand_value2(hand2); 
+    
+    let iter3 = a.0.chars();
+    let iter4 = b.0.chars();
+    if hand1_val == hand2_val{  //if the hand types are the same we go to high card decision
+        for (char1, char2) in iter3.zip(iter4){
+            let card1_val = get_card_num(char1);
+            let card2_val = get_card_num(char2);
+            if card1_val > card2_val{
+                hand1_val += 1;
+                break;
+            }
+            if card2_val > card1_val{
+                hand2_val += 1;
+                break;
+            }
+        }
+    }
+    (hand1_val as i32,hand2_val as i32)
+}
+
+fn cmp_hands2(a: (&str,i32) ,b: (&str,i32)) -> (i32,i32){
+    let iter1 = a.0.chars();
+    let iter2 = b.0.chars();
+    let mut hand1: [i32; 15] = [0; 15];
+    let mut hand2: [i32; 15] = [0; 15];
+
+    for (char1, char2) in iter1.zip(iter2){
+        hand1[get_card_num2(char1)] += 1;
+        hand2[get_card_num2(char2)] += 1;
+    }
+    // print!("{}\t",a.0);
+    let mut hand1_val = get_hand_value2(hand1); 
+    // print!("{}\t",b.0);
+    let mut hand2_val = get_hand_value2(hand2); 
+   
+    let iter3 = a.0.chars();
+    let iter4 = b.0.chars();
+    if hand1_val == hand2_val{  //if the hand types are the same we go to high card decision
+        for (char1, char2) in iter3.zip(iter4){
+            let card1_val = get_card_num2(char1);
+            let card2_val = get_card_num2(char2);
+            if card1_val > card2_val{
+                hand1_val += 1;
+                break;
+            }
+            if card2_val > card1_val{
+                hand2_val += 1;
+                break;
+            }
+        }
+    }
+    (hand1_val as i32,hand2_val as i32)
+}
+
+fn max_return(val: usize, new_val: usize) -> usize{
+    if new_val > val{ return new_val}
+    val
+}
+
+fn get_return_wild(val:usize,wild_num:usize) -> usize{
+    // match val {
+    //     0 => return wild_num;
+    //     1 =>
+    //     2 =>
+    //     3 =>
+    //     4 =>
+    //     5 =>
+    //     6 =>
+    //     _ => println!("This should never happen");
+    
+    //}
+    return val + wild_num;
+}
+fn get_hand_value2(hand: [i32; 15]) -> usize {
+    let mut three_found = false;
+    let mut two_found1 = false;
+    let mut three_found_wild = false;
+    let mut two_found_wild = false;
+    let mut two_found2 = false;
+    let mut max_return_val:usize = 0;
+    let mut num_wild = hand[1];
+    for i in 0..hand.len(){
+        let card = hand[i];
+        // match card {
+        //     5 => max_return_val =max_return(max_return_val,6),    //5 of a kind
+        //     4 => max_return_val =max_return(max_return_val,5),    //4 of a kind
+        //     3 => three_found = true,    //found 3 of a kind
+        //     2 => {
+        //         if two_found1{two_found2 = true}    //if this is the second pair we found
+        //         else {two_found1 = true}    //if this is the first pair we found
+        //         },
+        //     _ => continue,
+        // }
+        if i != 1{  //skip the jack
+            (max_return_val,three_found,two_found1,two_found2) = match_card(card,three_found,two_found1,two_found2,max_return_val);
+        }
+    }
+    
+    match num_wild {
+        0 =>{
+            if three_found && two_found1{max_return_val =max_return(max_return_val,4)}   //full house
+            if three_found{max_return_val =max_return(max_return_val,3)}    //three of a kind
+            if two_found2{max_return_val =max_return(max_return_val,2)}      //two pair
+            if two_found1{max_return_val =max_return(max_return_val,1)}     //one pair
+            },
+        1 =>{
+            if max_return_val == 5{max_return_val =max_return(max_return_val,6)}    //if we had 4 of kind and a wild
+            if three_found && two_found1{max_return_val =max_return(max_return_val,4)}   //full house
+            if three_found{max_return_val =max_return(max_return_val,5)}    //4 of a kind
+            if two_found2{max_return_val =max_return(max_return_val,4)}     //full house
+            if two_found1{max_return_val =max_return(max_return_val,3)}     //3 of a kind
+            max_return_val =max_return(max_return_val,1)                    //one pair
+            },
+        2 =>{
+            if three_found {max_return_val =max_return(max_return_val,6)}   //if we had 3 found and
+                                                                            //2 wild its now 5 of a kind
+            if two_found1 {max_return_val =max_return(max_return_val,5)} //if we had 2 find is now4
+            max_return_val =max_return(max_return_val,3)    //we are garuneted 3 of kind with 2wild
+            },
+        3 =>{
+            if two_found1 {max_return_val =max_return(max_return_val,6)} //2 found + 3 wild
+            max_return_val =max_return(max_return_val,5)    // 4 of a kind is garunteed
+            },
+        4 =>{
+            max_return_val =max_return(max_return_val,6) //5 is garunteed
+            },
+        5 =>{
+            max_return_val =max_return(max_return_val,6)//5 of a kind
+            },
+        _ => println!("This shouldn't happen"),
+
+    }
+    // if three_found && two_found1{max_return_val =max_return(max_return_val,4)}   //full house
+    // if three_found{max_return_val =max_return(max_return_val,3)}    //three of a kind
+    // if two_found2{max_return_val =max_return(max_return_val,2)}      //two pair
+    // if two_found1{max_return_val =max_return(max_return_val,1)}     //one pair
+   
+
+    // (max_return_val,three_found_wild,two_found_wild,_) = match_card(hand[1],false,false,false,max_return_val);
+    // if three_found_wild && two_found1{max_return_val =max_return(max_return_val,6)} //5 of a kind
+    // if three_found && two_found_wild{max_return_val =max_return(max_return_val,6)} //4 of a kind
+    // if two_found_wild && two_found1{max_return_val =max_return(max_return_val,5)}   //4 of a kind
+    // if two_found_wild{max_return_val =max_return(max_return_val,3)}                 //3 of a kind
+    // if num_wild == 1{max_return_val =max_return(max_return_val,1)}                  //one pair
+
+    // print!("numjack;{}\t{}:{}:",hand[1],max_return_val,num_wild); 
+    // max_return_val = get_return_wild(max_return_val,num_wild as usize);
+    // print!("Bools\t{}:{}:{}",three_found,two_found1,two_found2);
+    //process the jack seperate
+    // (max_return_val,three_found_wild,two_found_wild,_) = match_card(hand[1],false,false,false,max_return_val);
+    // if three_found && two_found1{max_return_val =max_return(max_return_val,4)}   //full house
+    // if three_found{max_return_val =max_return(max_return_val,3)}    //three of a kind
+    // if two_found2{max_return_val =max_return(max_return_val,2)}      //two pair
+    // if two_found1{max_return_val =max_return(max_return_val,2)}     //one pairi
+    // if three_found_wild && two_found1{max_return_val =max_return(max_return_val,6)} //if we found 3
+    //wild and two not wild then we have 5 of a kind
+    // if three_found && two_found_wild{max_return_val =max_return(max_return_val,6)} //if we found 2
+    //wild and three not wild then we have 5 of a kind
+    // if two_found_wild && two_found1{max_return_val =max_return(max_return_val,5)}   //if we found 2
+    //wild and two not wild then we have 4 of a kind
+    // print!("Bools\t{}:{}:{}",three_found,two_found1,two_found2);
+    // println!("\tval:{}\tnum_wild:{}",max_return_val,num_wild);
+    
+    max_return_val
+}
+
+fn match_card(card: i32, a:bool,b:bool,c:bool,max_val:usize) -> (usize,bool,bool,bool){
+    let mut three_found = a;
+    let mut two_found1 = b;
+    let mut two_found2 = c;
+    let mut max_return_val:usize = max_val;
+    match card {
+        5 => max_return_val =max_return(max_return_val,6),    //5 of a kind
+        4 => max_return_val =max_return(max_return_val,5),    //4 of a kind
+        3 => three_found = true,    //found 3 of a kind
+        2 => {
+            if two_found1{two_found2 = true}    //if this is the second pair we found
+            else {two_found1 = true}    //if this is the first pair we found
+            },
+        _ => {},
+    }
+    (max_return_val,three_found,two_found1,two_found2)
+
+}
+// fn get_hand_value3(hand: [i32; 15]) -> usize {
+//     let mut three_found = false;
+//     let mut two_found1 = false;
+//     let mut two_found2 = false;
+//     let mut num_wild = hand[1];
+//     let mut max_return_val:usize = 0;
+//
+//     for i in 0..hand.len(){
+//         let card = hand[i];
+//         if i != 1{  //if we arent looking at the jokers
+//             match card {
+//                 5 => max_return_val =max_return(max_return_val,6),    //5 of a kind
+//                 4 => {
+//                     match num_wild {
+//                         0 => max_return_val =max_return(max_return_val,5),  //4 of a kind with 0 wild
+//                         1 => max_return_val =max_return(max_return_val,6),  //4 of akind with 1 wild
+//                                         //so we return 5 of a kind
+//                         _ => continue,  //this should never happen
+//                     }},    
+//                 3 => {
+//                     match num_wild {
+//                         0 => three_found = true, //3 of a kind with 0 wild
+//                         1 => max_return_val =max_return(max_return_val,5),  //3 of a kind with 1 wild
+//                                         //so we return 4 of a kind
+//                         2 => max_return_val =max_return(max_return_val,6),  //3 of a kind with 2 wild
+//                                         //so we return 5 of a kind
+//                         _ => continue,  //this should never happen
+//                     }},    
+//                 2 => {
+//                     match num_wild {
+//                         0 => {
+//                             if two_found1{two_found2 = true}    //if this is the second pair we found
+//                             else {two_found1 = true}    //if this is the first pair we found
+//                             },
+//                         1 => {  //2 of a kind with 1 wild so we found 3 of a kind
+//                                 three_found = true;
+//                                 num_wild -= 1;
+//                             },
+//                         2 => max_return_val =max_return(max_return_val,5),  //2 of a kind with 2 wild
+//                                         //so we return 4 of a kind
+//                         3 => max_return_val =max_return(max_return_val,6),  //2 of a kind with 3 wild
+//                                         //so we return 5 of a kind
+//                         _ => continue   //this should never happen
+//                     }},
+//                 1 => {
+//                     match num_wild {
+//                         0=> continue,
+//                         1=> {   //no pairs but 1 wild so we have a pair
+//                                 if two_found1{two_found2 = true}    //if this is the second pair we found
+//                                 else {two_found1 = true}    //if this is the first pair we found
+//                                 num_wild -= 1;
+//                             },
+//                         2=> {   //no pairs but 2 wild so we found a 3 of a kind
+//                                 three_found = true;
+//                                 num_wild -= 2;
+//                             },
+//                         3=>
+//                         4=>
+//                         _ => continue   //this should never hapen
+//                     }},
+//                 _ => continue,
+//             }
+//         } else {
+//             match card {
+//                 5 => return 6,    //5 of a kind
+//                 4 => return 5,  //4 of a kind     
+//                 3 => three_found = true,    //found 3 of a kind
+//                 2 => {
+//                     if two_found1{two_found2 = true}    //if this is the second pair we found
+//                     else {two_found1 = true}    //if this is the first pair we found
+//                     },
+//                 _ => continue,
+//             }
+//
+//         }
+//     }
+//
+//     if three_found && two_found1{return 4}   //full house
+//     if three_found{return 3}    //three of a kind
+//     if two_found2{return 2}      //two pair
+//     if two_found1{return 1}     //one pair
+//     0
+// }
+// fn cmp_hands2(a: (&str,i32) ,b: (&str,i32)) -> (i32,i32){
+//     let iter1 = a.0.chars();
+//     let iter2 = b.0.chars();
+//     let mut hand1: [i32; 15] = [0; 15];
+//     let mut hand2: [i32; 15] = [0; 15];
+//
+//     for (char1, char2) in iter1.zip(iter2){
+//         hand1[get_card_num2(char1)] += 1;
+//         hand2[get_card_num2(char2)] += 1;
+//     }
+//     // println!("Before:{:?}",hand1);
+//     let mut tmp_val = hand1[1];
+//     for _ in 0..tmp_val{
+//         for card in hand1.iter_mut(){
+//             *card +=1;
+//         }
+//     }
+//     hand1[1] = tmp_val;
+//     tmp_val = hand2[1];
+//     for _ in 0..tmp_val{
+//         for card in hand2.iter_mut(){
+//             *card +=1;
+//         }
+//     }
+//     hand2[1] = tmp_val;
+//     // println!("After:{:?}",hand1);
+//     let mut hand1_val = get_hand_value(hand1); 
+//     let mut hand2_val = get_hand_value(hand2); 
+//     
+//
+//     let iter3 = a.0.chars();
+//     let iter4 = b.0.chars();
+//     if hand1_val == hand2_val{  //if the hand types are the same we go to high card decision
+//         if a.1 == 925{
+//             println!("Hand1:{:?}",a.0);
+//             println!("Hand2:{:?}",b.0);
+//         }
+//         for (char1, char2) in iter3.zip(iter4){
+//             let card1_val = get_card_num2(char1);
+//             let card2_val = get_card_num2(char2);
+//             if card1_val > card2_val{
+//                 hand1_val += 1;
+//                 break;
+//             }
+//             if card2_val > card1_val{
+//                 hand2_val += 1;
+//                 break;
+//             }
+//         }
+//         if a.1 == 925{
+//             println!("Hand1Val:{}",hand1_val);
+//             println!("Hand2Val:{}",hand2_val);
+//         }
+//     }
+//     (hand1_val as i32,hand2_val as i32)
+// }
+
+fn get_hand_value(hand: [i32; 15]) -> usize {
+    let mut three_found = false;
+    let mut two_found1 = false;
+    let mut two_found2 = false;
+
+    for card in hand{
+        match card {
+            5 => return 6,    //5 of a kind
+            4 => return 5,    //4 of a kind
+            3 => three_found = true,    //found 3 of a kind
+            2 => {
+                if two_found1{two_found2 = true}    //if this is the second pair we found
+                else {two_found1 = true}    //if this is the first pair we found
+                },
+            _ => continue,
+        }
+    }
+
+    if three_found && two_found1{return 4}   //full house
+    if three_found{return 3}    //three of a kind
+    if two_found2{return 2}      //two pair
+    if two_found1{return 1}     //one pair
+    0
+}
+
+fn get_card_num(input: char) -> usize {
+    match input {
+        '2' => return 2,  
+        '3' => return 3,  
+        '4' => return 4,  
+        '5' => return 5,  
+        '6' => return 6,  
+        '7' => return 7,  
+        '8' => return 8,  
+        '9' => return 9,  
+        'T' => return 10,  
+        'J' => return 11,  
+        'Q' => return 12,  
+        'K' => return 13,  
+        'A' => return 14,  
+         _  => return 2,  
+    }
+}
+
+fn get_card_num2(input: char) -> usize {
+    match input {
+        '2' => return 2,  
+        '3' => return 3,  
+        '4' => return 4,  
+        '5' => return 5,  
+        '6' => return 6,  
+        '7' => return 7,  
+        '8' => return 8,  
+        '9' => return 9,  
+        'T' => return 10,  
+        'J' => return 1,  
+        'Q' => return 12,  
+        'K' => return 13,  
+        'A' => return 14,  
+         _  => return 2,  
+    }
+}
+

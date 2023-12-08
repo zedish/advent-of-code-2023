@@ -40,7 +40,7 @@ mod tests {
     }
 }
 
-pub fn solve() -> (i32,i32) {
+pub fn solve() -> (i64,i64) {
     let mut res1 = 0;
     let mut res2 = 0;
     let result1 = do_puzzle("day1_1.txt",1);
@@ -53,7 +53,7 @@ pub fn solve() -> (i32,i32) {
         Ok(value) => {res2=value;}
         Err(error) =>{println!("Error occured:{}",error);}
     }
-    (res1,res2)
+    (res1 as i64,res2 as i64)
 }
 
 fn do_puzzle(input: &str, part: i32) -> Result<i32, io::Error>{

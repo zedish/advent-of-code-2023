@@ -1,7 +1,7 @@
 use std::io;
 use crate::utils;
 
-pub fn solve() -> (i32,i32) {
+pub fn solve() -> (i64,i64) {
     let result = do_puzzle("day2_1.txt",vec![12,13,14]);
     match result{
         Ok(value) => {return value}
@@ -10,7 +10,7 @@ pub fn solve() -> (i32,i32) {
     (0,0)
 }
 
-fn do_puzzle(input: &str, valid_colors: Vec<i32>) -> Result<(i32,i32), io::Error>{
+fn do_puzzle(input: &str, valid_colors: Vec<i32>) -> Result<(i64,i64), io::Error>{
     let contents = utils::read_file(input)?;
     let mut game_num = 1;
     let mut result = 0;
@@ -45,7 +45,7 @@ fn do_puzzle(input: &str, valid_colors: Vec<i32>) -> Result<(i32,i32), io::Error
 
         power += min_needed[0]*min_needed[1]*min_needed[2];
     }
-    Ok((result,power))
+    Ok((result as i64,power as i64))
 }
 
 fn parse_line(input: &str) -> Result<Vec<Vec<i32>>, &'static str> {

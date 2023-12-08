@@ -24,7 +24,7 @@ mod tests {
 }
 
 
-pub fn solve() -> (i32,i32) {
+pub fn solve() -> (i64,i64) {
     let result = do_puzzle("day6_1.txt"); 
     match result{
         Ok(value) => {return value}
@@ -34,7 +34,7 @@ pub fn solve() -> (i32,i32) {
     (0,0)
 }
 
-fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
+fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     let contents = utils::read_file(input)?;
     let mut inputs: Vec<Vec<i64>> = Vec::new(); 
     let mut inputs2: Vec<i64> = Vec::new(); 
@@ -61,7 +61,7 @@ fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
     let part2 = get_margin(*inputs2.get(0).unwrap_or(&0), 
                            *inputs2.get(1).unwrap_or(&0)); 
 
-    Ok((part1 as i32,part2 as i32))
+    Ok((part1,part2))
 }
 
 fn get_margin(b_in: i64, c_in: i64) -> i64{

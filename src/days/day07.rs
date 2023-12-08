@@ -24,7 +24,7 @@ mod tests {
 }
 
 
-pub fn solve() -> (i32,i32) {
+pub fn solve() -> (i64,i64) {
     let result = do_puzzle("day7_1.txt"); 
     match result{
         Ok(value) => {return value}
@@ -34,7 +34,7 @@ pub fn solve() -> (i32,i32) {
     (0,0)
 }
 
-fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
+fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     let contents = utils::read_file(input)?;
     
     let mut hands: Vec<(&str,i32)> = contents.lines()
@@ -65,7 +65,7 @@ fn do_puzzle(input: &str)-> Result<(i32,i32), io::Error>{
         result2 += i2*hand.1;
         i2 += 1;
     }
-    Ok((result,result2))
+    Ok((result as i64,result2 as i64))
 }
 
 fn cmp_hands(a: (&str,i32) ,b: (&str,i32), part: usize) -> (i32,i32){
