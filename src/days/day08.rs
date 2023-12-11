@@ -134,7 +134,7 @@ fn lcm(a: u64, b: u64) -> u64 {
 }
 fn lcm_of_multiple(numbers: &[u64]) -> u64 {
     if numbers.len() < 2 {
-        panic!("At least two numbers are required to find LCM");
+        return 0
     }
 
     let mut result = numbers[0];

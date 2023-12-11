@@ -25,8 +25,14 @@ mod tests {
 }
 
 
+// struct Range {
+//     start: i64,
+//     length: i64,
+//     dif: i64,
+// }
+
 pub fn solve() -> (i64,i64) {
-    let result = do_puzzle("day5_1.txt"); 
+    let result = do_puzzle("day5_1_1.txt"); 
     match result{
         Ok(value) => {return value}
         Err(error) =>{println!("Error occured:{}",error);}
@@ -34,6 +40,125 @@ pub fn solve() -> (i64,i64) {
     
     (0,0)
 }
+
+// fn do_puzzle2(input: &str)-> Result<(i64,i64), io::Error>{
+//     let contents = utils::read_file(input)?;
+//     let progress = "/-\\-"; 
+//
+//     let seeds = contents.lines().nth(0)
+//                         .unwrap()
+//                         .split(':')
+//                         .nth(1)
+//                         .unwrap()
+//                         .split_whitespace()
+//                         .map(|x| x.parse::<i64>()
+//                         .unwrap());
+//     let mut seed_vec: Vec<i64> = Vec::new();
+//     for seed in seeds.clone(){
+//         seed_vec.push(seed);
+//     }
+//     let mut maps: Vec<Vec<Vec<i64>>> = Vec::new();    
+//
+//     let mut skip2 = 3;
+//     let num_lines = contents.lines().count();
+//     while num_lines > skip2{
+//         let tmp1 = get_next_block(contents.clone(), skip2);
+//         maps.push(tmp1.clone());
+//         skip2 += tmp1.len() + 2;
+//     }
+//     // print!("Seed");
+//     // for seed in &seed_vec{
+//     //     print!(":{}",seed);
+//     // }
+//     // println!("");
+//     
+//     // for map in &maps{
+//     //     println!("map:");
+//     //     for range in map{
+//     //         for val in range{
+//     //             print!(":{}",val);
+//     //         }
+//     //         println!("");
+//     //     }
+//     //     println!("");
+//     // }
+//     //
+//     let mut seed_ranges: Vec<Range> = Vec::new();
+//     
+//     let mut prev = -1;
+//     for seed in seed_vec{
+//         if prev == -1{
+//             prev = seed;
+//         } else {
+//             let tmp = Range {
+//                 start: prev,
+//                 length: seed,
+//                 dif: 0,
+//             };
+//             seed_ranges.push(tmp);
+//             prev = -1;
+//         }
+//     }
+//     seed_ranges.sort_by(|a,b|{
+//         a.start.cmp(&b.start)
+//     });
+//     println!("Seed range:");
+//     for seeds in &seed_ranges{
+//         println!("Start:{} Len:{} Dist:{}",seeds.start,seeds.length,seeds.dif);
+//     }
+//
+//     let mut map_ranges: Vec<Vec<Range>> = Vec::new();
+//     for map in maps{
+//         let mut tmp_range:Vec<Range> = Vec::new();
+//         for range in map{
+//             let tmp = Range {
+//                 start: *range.get(1).unwrap_or(&0),
+//                 length: *range.get(2).unwrap_or(&0),
+//                 dif: range.get(0).unwrap_or(&0) - range.get(1).unwrap_or(&0),
+//             };
+//             tmp_range.push(tmp);    
+//         }
+//
+//         tmp_range.sort_by(|a,b|{
+//             a.start.cmp(&b.start)
+//         });
+//         map_ranges.push(tmp_range);
+//     }
+//     for map in &map_ranges{
+//         println!("Map range:");
+//         for range in map{
+//             println!("Start:{} Len:{} Dist:{}",range.start,range.length,range.dif);
+//         }
+//     }
+//
+//     println!("-------");
+//     for map in map_ranges{
+//         let mut tmp:Vec<Range> = Vec::new();
+//         for seed in &seed_ranges{
+//             let seed_start = seed.start;
+//             let seed_end = seed.start + seed.length-1;
+//             for range in &map{
+//                 let range_start = range.start;
+//                 let range_end = range.start + range.length-1;
+//                 //TODO: cover the case where the see is less then all ranges:q
+//                 if seed_start >= range_start && seed_start <= range_end{
+//                     if seed_end <= range_end && seed_end >= range_start{
+//                         let tmp_range = Range{
+//                             start: seed_start + range.dif,
+//                             length: seed.length,
+//                             dif: 0,
+//                         };
+//                         tmp.push(tmp_range);
+//                     }
+//                 }
+//             } 
+//         }
+//         for val in tmp{
+//             println!("Start:{} Len:{} Dist:{}",val.start,val.length,val.dif);
+//         }
+//     }
+//     Ok((0,0))
+// }
 
 fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     let contents = utils::read_file(input)?;
