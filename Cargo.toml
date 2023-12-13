@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 gcd = "2.3.0"
 regex = "1.5"
+memoize = "0.4.1"
