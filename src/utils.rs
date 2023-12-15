@@ -27,22 +27,3 @@ pub fn convert_to_int(input: &str) -> i32 {
         }
     }
 }
-
-pub fn transpose(matrix: &Vec<Vec<char>>) -> Vec<Vec<char>> {
-    if matrix.is_empty() {
-        return vec![];
-    }
-
-    let rows = matrix.len();
-    let cols = matrix[0].len();
-
-    let mut result = vec![vec!['.'; rows]; cols];
-
-    for i in 0..rows {
-        for j in 0..cols {
-            result[j][i] = matrix[i][j];
-        }
-    }
-
-    result
-}
