@@ -1,8 +1,8 @@
 use std::io;
 use crate::utils;
-use nalgebra::DMatrix;
 extern crate nalgebra as na;
-
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 #[cfg(test)]
 mod tests {
@@ -44,11 +44,11 @@ enum Rocks {
     Empty,
 }
 
-fn rocks_to_numeric(rock: Rocks) -> f64 {
+fn rocks_to_numeric(rock: Rocks) -> u8 {
     match rock {
-        Rocks::Moveable => 3.0,
-        Rocks::Nonmoveable => 2.0,
-        Rocks::Empty => 1.0,
+        Rocks::Moveable => 1,
+        Rocks::Nonmoveable => 1,
+        Rocks::Empty => 0,
     }
 }
 
@@ -74,7 +74,7 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
         }).collect()
     }).collect();
 
-    let mut e_vec: Vec<na::Matrix<na::Complex<f64>, na::Dyn, na::Const<1>, na::VecStorage<na::Complex<f64>, na::Dyn, na::Const<1>>>> = Vec::new();
+    let mut hash_vec: Vec<u64> = Vec::new();
 
     let mut part1_matrix = matrix.clone();
     let mut part2_matrix = matrix.clone();
@@ -84,72 +84,64 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     rotate_matrix_cw(&mut part1_matrix);
     let part1 = calculate(part1_matrix);
 
-    rotate_matrix_ccw(&mut part2_matrix);
-    e_vec.push(compute_eigen(part2_matrix.clone()));
     let mut extra_needed = 0;
-    let mut loop_len = 0;
-    part2_matrix = do_cycle(part2_matrix);
-    for i  in 1..=1000000000_u64{
+    rotate_matrix_ccw(&mut part2_matrix);
+    for i  in 0..=1000000000_u64{
         part2_matrix = do_cycle(part2_matrix);        
-        let tmp_e = compute_eigen(part2_matrix.clone());
-        let check = check_if_loop(tmp_e.clone(), e_vec.clone());
+        let tmp_hash = compute_hash(part2_matrix.clone());
+        let check = check_if_loop(tmp_hash.clone(), hash_vec.clone());
         
         if check != -1{
-            loop_len = i as i32 -check;
-            
+            let loop_len = i as i32 -check;
             //not entirely sure why i is +2 here but it works
             extra_needed = (1000000000 - (i + 2)) %loop_len as u64;
             break;
         }
-        e_vec.push(tmp_e);
+        hash_vec.push(tmp_hash);
     }
-    for _ in 0..=extra_needed + loop_len as u64{
+    for _ in 0..=extra_needed{
         part2_matrix = do_cycle(part2_matrix.clone());
     }
+
     rotate_matrix_cw(&mut part2_matrix);
     let part2 = calculate(part2_matrix);
     Ok((part1,part2))
 }
 
-fn check_if_loop(cur: na::Matrix<na::Complex<f64>, na::Dyn, na::Const<1>, na::VecStorage<na::Complex<f64>, na::Dyn, na::Const<1>>>, prev: Vec<na::Matrix<na::Complex<f64>, na::Dyn, na::Const<1>, na::VecStorage<na::Complex<f64>, na::Dyn, na::Const<1>>>>) -> i32{
+fn check_if_loop(cur: u64,prev: Vec<u64>) -> i32{
     for (i,val) in prev.iter().enumerate(){
         if cur == *val{
             return i as i32
         }
     }
-
-   return -1; 
+    return -1;
 }
 
-fn compute_eigen(input: Vec<Vec<Rocks>>) -> na::Matrix<na::Complex<f64>, na::Dyn, na::Const<1>, na::VecStorage<na::Complex<f64>, na::Dyn, na::Const<1>>>{
-    let numeric_matrix: Vec<Vec<f64>> = input.iter()
-        .map(|row| row.iter().map(|&rock| rocks_to_numeric(rock)).collect())
-        .collect();
-    let nrows = numeric_matrix.len();
-    let ncols = numeric_matrix[0].len();
-    let mut d_matrix = DMatrix::zeros(nrows, ncols);
+fn compute_hash(input: Vec<Vec<Rocks>>) -> u64{
+    let mut hasher = DefaultHasher::new();
 
-    for i in 0..nrows {
-        for j in 0..ncols {
-            d_matrix[(i, j)] = numeric_matrix[i][j];
+    for row in input {
+        for cell in row {
+            rocks_to_numeric(cell).hash(&mut hasher);
         }
     }
-    d_matrix.complex_eigenvalues()
+
+    hasher.finish()
 } 
 
 fn do_cycle(input: Vec<Vec<Rocks>>) -> Vec<Vec<Rocks>>{
     let mut output = input.clone();
     //north
-    move_left(&mut output);
+    move_left_mut(&mut output);
     rotate_matrix_cw(&mut output);
     //west
-    move_left(&mut output);
+    move_left_mut(&mut output);
     rotate_matrix_cw(&mut output);
     //south
-    move_left(&mut output);
+    move_left_mut(&mut output);
     rotate_matrix_cw(&mut output);
     //east
-    move_left(&mut output);
+    move_left_mut(&mut output);
     rotate_matrix_cw(&mut output);
     output
 }
@@ -197,12 +189,37 @@ fn rotate_matrix_ccw(matrix: &mut Vec<Vec<Rocks>>) {
         }
     }
 }
+fn move_left_mut(input: &mut Vec<Vec<Rocks>>) {
+    for mut line in input{
+        move_line_mut(&mut line);
+    }
+}
 
 fn move_left(input: &mut Vec<Vec<Rocks>>) {
     let _ = input.clone().iter().enumerate().for_each(|(index_i, line)|{
         let tmp = move_line(line.to_vec());
         input[index_i] = tmp;
     });
+}
+fn move_line_mut(input: &mut Vec<Rocks>){
+    let mut valid = find_next_valid(input.clone(), 0);
+    let mut index = valid + 1;
+    loop {
+        match input[index] {
+            Rocks::Moveable => {
+                input[valid] = Rocks::Moveable;
+                input[index] = Rocks::Empty;
+                valid = find_next_valid(input.clone(), valid);
+                index += 1;
+            },
+            Rocks::Nonmoveable => {
+                valid = find_next_valid(input.clone(), index);
+                index = valid + 1;
+            },
+            Rocks::Empty => { index += 1},
+        }
+        if index > input.len()-1{break;}
+    }
 }
 
 fn move_line(input: Vec<Rocks>) -> Vec<Rocks> {

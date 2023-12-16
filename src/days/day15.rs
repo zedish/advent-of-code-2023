@@ -131,7 +131,6 @@ fn calculate_power(input: Vec<Vec<Opt>>) -> i64 {
 fn create_opt(input: &str) -> Opt{
     let label_tmp = input.split(|c| c == '-' || c == '=').nth(0).unwrap().to_string();
     let focal_str = input.split(|c| c == '-' || c == '=').nth(1).unwrap_or("0");
-    // println!("input:{}\tfocal:{}",input,focal_str);
     Opt{
         label : label_tmp.clone(),
         hash : compute_hash(label_tmp) as usize,
