@@ -1,5 +1,4 @@
 use std::io;
-use regex::Regex;
 
 use crate::utils;
 
@@ -67,7 +66,7 @@ fn do_puzzle(input: &str, part: i32) -> Result<i32, io::Error>{
 }
 
 fn find_digits(line: &str, part: i32) -> i32{
-    let re_first = Regex::new(r"\d").unwrap();
+    // let re_first = Regex::new(r"\d").unwrap();
     let tmp_line;
     let mut result = 0;
     if part == 1 {
@@ -78,18 +77,19 @@ fn find_digits(line: &str, part: i32) -> i32{
         tmp_line = line.to_string();
     }
     let processed_line = tmp_line.as_str();
-       
-    if let Some(num) = re_first.find(processed_line) {
-        result += utils::convert_to_int(num.as_str()) * 10;
+      
+    let nums = ['0','1','2','3','4','5','6','7','8','9'];
+    if let Some(index) = processed_line.chars().position(|c| nums.contains(&c))  {
+        result += utils::convert_to_int(&processed_line.chars().nth(index).unwrap().to_string()) * 10;
     } else {
         println!("No first int found in str \"{}\"",line);
     }
 
-    let mut last_digit: Option<&str> = None;    
-    for digit in re_first.find_iter(processed_line) {
-        last_digit = Some(digit.as_str());
+    if let Some(index) = processed_line.chars().rev().position(|c| nums.contains(&c))  {
+        result += utils::convert_to_int(&processed_line.chars().rev().nth(index).unwrap().to_string());
+    } else {
+        println!("No first int found in str \"{}\"",line);
     }
-    result += utils::convert_to_int(last_digit.unwrap_or("0"));
 
     result
 }

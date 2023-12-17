@@ -1,5 +1,6 @@
 use std::io;
 use crate::utils;
+use std::thread;
 
 #[cfg(test)]
 mod tests {
@@ -32,7 +33,7 @@ mod tests {
 }
 
 #[derive(Clone, Eq,Hash)]
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy)]
 enum Mirror {
     MLeft,
     MRight,
@@ -42,11 +43,11 @@ enum Mirror {
 }
 
 #[derive(Clone, Eq,Hash)]
-#[derive(PartialEq)]
+#[derive(PartialEq,Copy)]
 struct Cell {
     c_type: Mirror,
     energized: bool,
-    approach: Vec<Vec<bool>>,
+    approach: [[bool; 3]; 3],
 }
 
 #[derive(Clone, Eq,Hash)]
@@ -69,7 +70,7 @@ fn create_cell(input: char) -> Cell {
                  _   => Mirror::Empty,
             }
         },
-        approach: vec![vec![false; 3]; 3],
+        approach: [[false; 3]; 3],
     }
 }
 
@@ -99,46 +100,88 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     follow_light(&mut matrix0, start_light.clone());
     let part1 = count_energized(matrix0.clone());
 
-    let part2 = do_part2(matrix, start_light);
+    let part2 = do_part2_thread(matrix, start_light);
 
     Ok((part1,part2))
 }
 
-fn do_part2(matrix: Vec<Vec<Cell>>, mut start_light: Light) -> i64{
+fn do_thing(mut matrix: &mut Vec<Vec<Cell>>, start_light: Light)->i64{
+    follow_light(&mut matrix, start_light);
+    count_energized(matrix.to_vec())
+}
+
+fn do_part2_thread(matrix: Vec<Vec<Cell>>, start_light: Light) -> i64{
     let mut part2 = 0;
+    let mut vals = vec![];
+    let mut starts: Vec<Light> = Vec::new();
     for i in 0..matrix.len(){
-        let mut matrix1 = matrix.clone();
-        let mut matrix2 = matrix.clone();
+        let mut start_light1 = start_light.clone(); 
+        let mut start_light2 = start_light.clone(); 
+        start_light1.location = (i as i8,0);
+        start_light1.direction = (0,1);
+        starts.push(start_light1);
         
-        start_light.location = (i as i8,0);
-        start_light.direction = (0,1);
-        follow_light(&mut matrix1, start_light.clone());
-        let tmp = count_energized(matrix1.clone());
-        if tmp > part2{part2 = tmp;}
-        
-        start_light.location = (i as i8, (matrix2.len()-1) as i8);
-        start_light.direction = (0,-1);
-        follow_light(&mut matrix2, start_light.clone());
-        let tmp2 = count_energized(matrix2.clone());
-        if tmp2 > part2{part2 = tmp2;}
+        start_light2.location = (i as i8, (matrix.len()-1) as i8);
+        start_light2.direction = (0,-1);
+        starts.push(start_light2);
     }
     for i in 0..matrix[0].len(){
-        let mut matrix1 = matrix.clone();
-        let mut matrix2 = matrix.clone();
+        let mut start_light1 = start_light.clone(); 
+        let mut start_light2 = start_light.clone(); 
         
-        start_light.location = (0,i as i8);
-        start_light.direction = (1,0);
-        follow_light(&mut matrix1, start_light.clone());
-        let tmp = count_energized(matrix1.clone());
-        if tmp > part2{part2 = tmp;}
+        start_light1.location = (0,i as i8);
+        start_light1.direction = (1,0);
+        starts.push(start_light1);
         
-        start_light.location = ((matrix2.len()-1) as i8,i as i8);
-        start_light.direction = (-1,0);
-        follow_light(&mut matrix2, start_light.clone());
-        let tmp2 = count_energized(matrix2.clone());
-        if tmp2 > part2{part2 = tmp2;}
+        start_light2.location = ((matrix.len()-1) as i8,i as i8);
+        start_light2.direction = (-1,0);
+        starts.push(start_light2);
     }
+
+    let num_threads = 8;
+    let partitions: Vec<Vec<Light>> = starts
+        .chunks(starts.len() / num_threads) // Split into chunks of equal length
+        .map(|chunk| chunk.to_vec())
+        .collect();
+
+    partitions.iter().for_each(|part|{
+        let tmp_part = part.clone();
+        let tmp_matrix = matrix.clone();
+        let val = thread::spawn(move || process_list(tmp_matrix,tmp_part));
+        vals.push(val);
+    });
+
+
+    for val in vals{
+        let tmp = val.join().unwrap();
+        if tmp > part2{
+            part2 = tmp;
+        }
+    }
+
     part2
+}
+
+fn process_list(matrix: Vec<Vec<Cell>>, inputs: Vec<Light>) -> i64 {
+    let mut intern_matrix = matrix.clone();
+    let mut result = 0;
+    inputs.iter().for_each(|val|{
+        set_matrix(&matrix, &mut intern_matrix);
+        let tmp = do_thing(&mut intern_matrix, val.clone());
+        if tmp > result{
+            result = tmp;
+        }
+
+    });
+    result
+}
+
+fn set_matrix(input:&Vec<Vec<Cell>>, output: &mut Vec<Vec<Cell>>){
+    for (inner_vec1, inner_vec2) in output.iter_mut().zip(input.iter()) {
+            for (elem1, &elem2) in inner_vec1.iter_mut().zip(inner_vec2.iter()) {
+                *elem1 = elem2;
+        }
+    }
 }
 
 fn count_energized(matrix: Vec<Vec<Cell>>) -> i64{

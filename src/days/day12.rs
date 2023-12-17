@@ -58,38 +58,66 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     let mut part2 = 0;
     let mut vals = vec![];
     let mut vals2 = vec![];
-    for line in contents.lines(){
-        let tmp = line.to_owned();
-        let val = thread::spawn(move || process_line(&tmp));
-        vals.push(val);
-    }
+    
+    let num_threads = 12;
+    
+    let lines: Vec<&str> = contents.lines().collect();
+    let chunk_size = (lines.len() +num_threads - 1) / num_threads; // Calculate the size of each chunk
+    let partitions: Vec<String> = lines
+        .chunks(chunk_size)
+        .map(|chunk| chunk.join("\n"))
+        .collect();
+    
 
+    partitions.iter().for_each(|part|{
+        let input = part.to_string().clone();
+        let val = thread::spawn(move || process_list_1(input));
+        vals.push(val);
+    });
     for val in vals{
         part1+=val.join().unwrap();
     }
-    if true{
-        for line in contents.lines(){
-            let mut mod_line = String::new();
-            mod_line.push_str(line.split_whitespace().nth(0).unwrap());
-            for _ in 1..5{
-                mod_line.push_str("?");
-                mod_line.push_str(line.split_whitespace().nth(0).unwrap());
-            }
-            mod_line.push_str(" ");
-            mod_line.push_str(line.split_whitespace().nth(1).unwrap());
-            for _ in 1..5{
-                mod_line.push_str(",");
-                mod_line.push_str(line.split_whitespace().nth(1).unwrap());
-            }
-            let tmp = mod_line.to_owned();
-            let val = thread::spawn(move || process_line(&tmp));
-            vals2.push(val);
-        }
-        for val in vals2{
-            part2+=val.join().unwrap();
-        }
+
+
+    partitions.iter().for_each(|part|{
+        let input = part.to_string().clone();
+        let val = thread::spawn(move || process_list(input));
+        vals2.push(val);
+    });
+    for val in vals2{
+        part2+=val.join().unwrap();
     }
+
     Ok((part1,part2))
+}
+
+fn process_list_1(lines: String) -> i64{
+    let mut result = 0;
+    for line in lines.lines(){
+        let tmp =line.to_owned();
+        result += process_line(&tmp);
+    }
+    result
+}
+fn process_list(lines: String) -> i64{
+    let mut result = 0;
+    for line in lines.lines(){
+        let mut mod_line = String::new();
+        mod_line.push_str(line.split_whitespace().nth(0).unwrap());
+        for _ in 1..5{
+            mod_line.push_str("?");
+            mod_line.push_str(line.split_whitespace().nth(0).unwrap());
+        }
+        mod_line.push_str(" ");
+        mod_line.push_str(line.split_whitespace().nth(1).unwrap());
+        for _ in 1..5{
+            mod_line.push_str(",");
+            mod_line.push_str(line.split_whitespace().nth(1).unwrap());
+        }
+        let tmp = mod_line.to_owned();
+        result += process_line(&tmp);
+    }
+    result
 }
 
 fn process_line(line: &str) -> i64{
