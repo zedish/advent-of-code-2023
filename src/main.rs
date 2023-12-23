@@ -7,7 +7,7 @@ fn main() {
     
     let skip: Vec<i32> = vec![0];
 
-    let days = 21..=21;
+    let days = 22..=22;
     for day in days{
         if skip.contains(&day){continue;}
         let func = get_day_solver(day);
