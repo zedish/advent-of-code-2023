@@ -73,8 +73,6 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
         (tmp_block.uuid,tmp_block)
     }).collect();
 
-    println!("Max x:{}  Max y:{}  Max z:{}",max_x,max_y,max_z);
-
     let default_uuid = Uuid::new_v4();
     let mut world: Vec<Vec<Vec<Uuid>>> = vec![vec![vec![default_uuid;max_y+1];max_x+1];max_z+1];
     
@@ -105,20 +103,16 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
             }
         }
     });
-
+    let mut part2 = 0;
     let mut tmp_blocks:Vec<Block> = blocks.iter().map(|(_,block)|{(*block).clone()}).collect();
     tmp_blocks.sort_by_key(|block|block.z1);
     tmp_blocks.clone().iter_mut().for_each(|block|{
-        check_chain(&mut blocks,  block.uuid);
+        part2 += check_chain(&mut blocks,  block.uuid);
+        block.num_fall;
         reset_fall(&mut blocks);
     });
 
-    blocks.iter().for_each(|(_,block)|{
-        println!("{}",block.num_fall);
-    });
-
-
-    Ok((part1,0))
+    Ok((part1,part2))
 }
 
 fn check_chain(blocks:&mut HashMap<Uuid,Block>, block_uuid:Uuid) -> i64{
@@ -128,21 +122,39 @@ fn check_chain(blocks:&mut HashMap<Uuid,Block>, block_uuid:Uuid) -> i64{
         result = block.num_fall;
         return result;
     }
-    let list = block.suporting.clone();
-    list.iter().for_each(|block_tmp|{
-        result += check_chain(blocks, *block_tmp); 
-    });
     let mut_block = blocks.get_mut(&block_uuid).unwrap();
-    mut_block.num_fall = 100;
+    mut_block.has_fallen = true;
+
+    let list = mut_block.suporting.clone();
+    list.iter().for_each(|block_tmp|{
+        let tmp_block = blocks.get(block_tmp).unwrap();
+        let mut all_fall = true;
+        tmp_block.suported_by.iter().for_each(|block_tmp_uuid|{
+            let supported_block = blocks.get(block_tmp_uuid).unwrap();
+            if !supported_block.has_fallen {
+                all_fall = false;
+            }
+        });
+        if all_fall{
+            result += check_chain(blocks, *block_tmp) + 1; //plus one to count this block we are
+            //calling fall on
+
+        }
+    });
+    let mut_block = blocks.get_mut(&block_uuid).unwrap(); //getting mut again needed for borrow
+    //reasons
+    mut_block.num_fall = result; 
     result
 }
 
 fn reset_fall(blocks: &mut HashMap<Uuid,Block>){
     blocks.iter_mut().for_each(|(_,block)|{
         block.has_fallen = false;
+        block.num_fall = -1;
     });  
 }
 
+#[allow(dead_code)]
 fn print_slice(slice_num: usize, blocks:&HashMap<Uuid,Block>, w_size: usize){
     println!("=============================");
     let mut tmp_blocks:Vec<Block> = blocks.iter().map(|(_,block)|{(*block).clone()}).collect();
