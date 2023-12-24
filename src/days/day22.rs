@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::{io, collections::HashMap};
 use crate::utils;
 use uuid::Uuid;
-use uuid::uuid;
 
 #[cfg(test)]
 mod tests {
@@ -30,6 +29,8 @@ struct Block {
     uuid: Uuid,
     suported_by: HashSet<Uuid>,
     suporting: HashSet<Uuid>,
+    has_fallen: bool,
+    num_fall: i64,
 }
 
 pub fn solve() -> (i64,i64) {
@@ -63,6 +64,8 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
             uuid: Uuid::new_v4(),
             suported_by: HashSet::new(),
             suporting: HashSet::new(),
+            has_fallen: false,
+            num_fall: -1,
         };
         max_x = max_x.max(tmp_block.x1.max(tmp_block.x2));
         max_y = max_y.max(tmp_block.y1.max(tmp_block.y2));
@@ -71,12 +74,6 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
     }).collect();
 
     println!("Max x:{}  Max y:{}  Max z:{}",max_x,max_y,max_z);
-
-    // blocks.iter().for_each(|(_,block)|{print_block(&block)});
-    // println!("=============================");
-    // blocks.iter().for_each(|(_,block)|{print_block(&block)});
-    // println!("=============================");
-
 
     let default_uuid = Uuid::new_v4();
     let mut world: Vec<Vec<Vec<Uuid>>> = vec![vec![vec![default_uuid;max_y+1];max_x+1];max_z+1];
@@ -89,12 +86,69 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
         // find_supported(world.to_vec(), block, default_uuid, ground);
     });
 
+    let mut part1 = 0;
+    blocks.iter().for_each(|(_,block)|{
+        if block.suporting.len() == 0 {
+            part1 += 1;
+        }
+        else {
+            let mut wont_fall = true;
+            block.suporting.iter().for_each(|topblockuuid|{
+                let topblock = blocks.get(topblockuuid).unwrap();
+                
+                if topblock.suported_by.len() == 1 {
+                    wont_fall = false;                
+                }
+            });
+            if wont_fall {
+                part1 += 1;
+            }
+        }
+    });
+
+    let mut tmp_blocks:Vec<Block> = blocks.iter().map(|(_,block)|{(*block).clone()}).collect();
+    tmp_blocks.sort_by_key(|block|block.z1);
+    tmp_blocks.clone().iter_mut().for_each(|block|{
+        check_chain(&mut blocks,  block.uuid);
+        reset_fall(&mut blocks);
+    });
+
+    blocks.iter().for_each(|(_,block)|{
+        println!("{}",block.num_fall);
+    });
+
+
+    Ok((part1,0))
+}
+
+fn check_chain(blocks:&mut HashMap<Uuid,Block>, block_uuid:Uuid) -> i64{
+    let mut result = 0;
+    let block = blocks.get(&block_uuid).unwrap();
+    if block.num_fall != -1 {
+        result = block.num_fall;
+        return result;
+    }
+    let list = block.suporting.clone();
+    list.iter().for_each(|block_tmp|{
+        result += check_chain(blocks, *block_tmp); 
+    });
+    let mut_block = blocks.get_mut(&block_uuid).unwrap();
+    mut_block.num_fall = 100;
+    result
+}
+
+fn reset_fall(blocks: &mut HashMap<Uuid,Block>){
+    blocks.iter_mut().for_each(|(_,block)|{
+        block.has_fallen = false;
+    });  
+}
+
+fn print_slice(slice_num: usize, blocks:&HashMap<Uuid,Block>, w_size: usize){
     println!("=============================");
     let mut tmp_blocks:Vec<Block> = blocks.iter().map(|(_,block)|{(*block).clone()}).collect();
     tmp_blocks.sort_by_key(|block|block.z1);
     let mut num = 0;
-    let mut slice: Vec<Vec<char>> = vec![vec!['.';13];13];
-    let slice_num = 1;
+    let mut slice: Vec<Vec<char>> = vec![vec!['.';w_size];w_size];
     tmp_blocks.iter_mut().for_each(|block|{
         num +=1;
         if block.z1.min(block.z2) == slice_num {
@@ -118,80 +172,7 @@ fn do_puzzle(input: &str)-> Result<(i64,i64), io::Error>{
         });
         println!("");
     });
-    let mut slice: Vec<Vec<char>> = vec![vec!['.';10];10];
-    tmp_blocks.iter_mut().for_each(|block|{
-        num +=1;
-        if block.z1.min(block.z2) == slice_num + 1 {
-            print!("Sup:{} ",block.suporting.len());
-            print_block(block);
-            for x in block.x1.min(block.x2)..=block.x1.max(block.x2){
-                for y in block.y1.min(block.y2)..=block.y1.max(block.y2){
-                    if slice[x][y] == '.' {
-                        slice[x][y] = '*';
-                    }
-                    else {
-                        println!("error x1:{} y1:{} x2:{} y2:{}",block.x1,block.y1,block.x2,block.y2)
-                    }
-                }
-            }
-        }
-    });
-    slice.iter().for_each(|row|{
-        row.iter().for_each(|val|{
-            print!("{}",val);
-        });
-        println!("");
-    });
 
-
-    let mut top = 0;
-    let mut anywhere = 0;
-    //let mut removeable: HashSet<Uuid> = HashSet::new();
-    let mut rev = 0;
-    blocks.iter().for_each(|(_,block)|{
-        //if block.suported_by.len() > 1 {
-            //block.suported_by.iter().for_each(|val|{
-            //    removeable.insert(*val);
-            //    anywhere += 1;
-           // });
-        //}
-        if block.suporting.len() == 0 {
-            //removeable.insert(block.uuid);
-            rev += 1;
-            top += 1;
-        }
-        else {
-            let mut bool = true;
-            block.suporting.iter().for_each(|topblockuuid|{
-                let topblock = blocks.get(topblockuuid).unwrap();
-                
-                if topblock.suported_by.len() == 1 {
-                    bool = false;                
-                }
-                
-            });
-            if bool{
-                //removeable.insert(block.uuid);
-                anywhere += 1;
-                rev += 1;
-            }
-        }
-        if block.suported_by.len() == 0 {
-            println!("shouldn't happen");
-            print_block(block);
-        }
-    });
-
-
-    println!("top:{}  anywhere:{}",top,anywhere); 
-    println!("total blocks:{}",blocks.len()); 
-
-
-
-
-    //let part1 = removeable.len() as i64;
-    let part1 = rev as i64; 
-    Ok((part1,0))
 }
 
 fn gravity2(world: &mut Vec<Vec<Vec<Uuid>>>, blocks: &mut HashMap<Uuid,Block>, defualt_uuid: Uuid, ground_uuid: Uuid){
@@ -199,8 +180,8 @@ fn gravity2(world: &mut Vec<Vec<Vec<Uuid>>>, blocks: &mut HashMap<Uuid,Block>, d
     sorted_block.sort_by_key(|block|block.z1.min(block.z2));
     sorted_block.iter().for_each(|block_uuid|{
         let tmp_block = blocks.get_mut(&block_uuid.uuid).unwrap();
-        println!("=============");
-        print_block(tmp_block);
+        // println!("=============");
+        // print_block(tmp_block);
         let lowest_z = find_closest_bloc(world.to_vec(), tmp_block, defualt_uuid);
         let z_delta = lowest_z.abs_diff(tmp_block.z1.min(tmp_block.z2));
         for z in tmp_block.z1.min(tmp_block.z2)..=tmp_block.z1.max(tmp_block.z2){
@@ -215,8 +196,8 @@ fn gravity2(world: &mut Vec<Vec<Vec<Uuid>>>, blocks: &mut HashMap<Uuid,Block>, d
         tmp_block.z1 = lowest_z;
         tmp_block.z2 = tmp_block.z1 + z_diff;
         find_supported(world.to_vec(), tmp_block, defualt_uuid, ground_uuid);
-        print_block(tmp_block);
-        println!("=============");
+        // print_block(tmp_block);
+        // println!("=============");
     });
 }
 
@@ -281,7 +262,6 @@ fn populate_world(world: &mut Vec<Vec<Vec<Uuid>>>, blocks:&HashMap<Uuid,Block>){
         for z in block.z1.min(block.z2)..=block.z1.max(block.z2){
             for x in block.x1.min(block.x2)..=block.x1.max(block.x2){
                 for y in block.y1.min(block.y2)..=block.y1.max(block.y2){
-                    print!("{}",block.uuid);
                     world[z][x][y] = block.uuid;
                 }
             }
