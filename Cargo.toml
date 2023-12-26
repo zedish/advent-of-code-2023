@@ -13,6 +13,7 @@ nalgebra = "0.32.3"
 itertools = "0.10.0"
 pathfinding = "4.6.0"
 z3 = "0.12"
+rustworkx-core = "0.13.2"
 
 [dependencies.uuid]
 version = "1.6.1"

@@ -9,9 +9,17 @@ mod tests {
 
     #[test]
     fn test_part1_example1() {
-        let result = do_puzzle("day22_1_1.txt");
+        let result = do_puzzle("day22_1_0.txt");
         match result{
             Ok(value) => {assert_eq!(value.0,5);}
+            Err(_error) =>{assert_eq!(1,2);}
+        }
+    }
+    #[test]
+    fn test_part2_example1() {
+        let result = do_puzzle("day22_1_0.txt");
+        match result{
+            Ok(value) => {assert_eq!(value.1,7);}
             Err(_error) =>{assert_eq!(1,2);}
         }
     }
@@ -34,7 +42,7 @@ struct Block {
 }
 
 pub fn solve() -> (i64,i64) {
-    let result = do_puzzle("day22_1.txt"); 
+    let result = do_puzzle("day22_1_0.txt"); 
     match result{
         Ok(value) => {return value}
         Err(error) =>{println!("Error occured:{}",error);}

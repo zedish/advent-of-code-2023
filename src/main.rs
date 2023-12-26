@@ -6,8 +6,8 @@ fn main() {
     println!("Hello, Advent of Code!");
     
     let skip: Vec<i32> = vec![0];
-
-    let days = 24..=24;
+    let mut total_time = 0.0;
+    let days = 1..=25;
     for day in days{
         if skip.contains(&day){continue;}
         let func = get_day_solver(day);
@@ -16,8 +16,9 @@ fn main() {
         let result = func();
         let elapsed_ms = time.elapsed().as_nanos() as f64 / 1_000_000.0;
         println!("Part1:{}        Part2:{}\tTime for solve:{}ms",result.0,result.1,elapsed_ms);
-
+        total_time += elapsed_ms
     }
+    println!("Total Time for all soutions:{}ms",total_time);
 }
 
 fn get_day_solver(day: i32) -> fn() -> (i64,i64) {
